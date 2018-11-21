@@ -1257,7 +1257,7 @@ ORDER BY umbracoNode.level, umbracoNode.sortOrder";
             var publishedSnapshot = (PublishedSnapshot) _publishedSnapshotAccessor.PublishedSnapshot;
             if (publishedSnapshot == null) return;
             ((PublishedContentCache) publishedSnapshot.Content).Resync(xml);
-            ((PublishedMediaCache) publishedSnapshot.Media).Resync();
+            //((PublishedMediaCache) publishedSnapshot.Media).Resync();
 
             // not trying to resync members or domains, which are not cached really
         }

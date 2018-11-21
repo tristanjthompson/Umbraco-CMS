@@ -15,7 +15,7 @@ namespace Umbraco.Web.PublishedCache.XmlPublishedCache
         /// </summary>
         public PublishedSnapshot(
             PublishedContentCache contentCache,
-            PublishedMediaCache mediaCache,
+            IPublishedMediaCache mediaCache,
             PublishedMemberCache memberCache,
             DomainCache domainCache)
         {
