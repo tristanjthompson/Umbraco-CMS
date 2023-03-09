@@ -1,4 +1,5 @@
 using NPoco;
+using StackExchange.Profiling.Internal;
 using Umbraco.Cms.Core;
 using Umbraco.Cms.Core.Cache;
 using Umbraco.Cms.Core.Models;
@@ -32,20 +33,20 @@ internal class EntityRepository : RepositoryBase, IEntityRepositoryExtended
 
     public IEnumerable<IEntitySlim> GetPagedResultsByQuery(IQuery<IUmbracoEntity> query, Guid objectType,
         long pageIndex, int pageSize, out long totalRecords,
-        IQuery<IUmbracoEntity>? filter, Ordering? ordering) =>
-        GetPagedResultsByQuery(query, new[] {objectType}, pageIndex, pageSize, out totalRecords, filter, ordering);
+        IQuery<IUmbracoEntity>? filter, Ordering? ordering, string? culture = null) =>
+        GetPagedResultsByQuery(query, new[] {objectType}, pageIndex, pageSize, out totalRecords, filter, ordering, culture);
 
     // get a page of entities
     public IEnumerable<IEntitySlim> GetPagedResultsByQuery(IQuery<IUmbracoEntity> query, Guid[] objectTypes,
         long pageIndex, int pageSize, out long totalRecords,
-        IQuery<IUmbracoEntity>? filter, Ordering? ordering, Action<Sql<ISqlContext>>? sqlCustomization = null)
+        IQuery<IUmbracoEntity>? filter, Ordering? ordering, string? culture = null, Action<Sql<ISqlContext>>? sqlCustomization = null)
     {
         var isContent = objectTypes.Any(objectType =>
             objectType == Constants.ObjectTypes.Document || objectType == Constants.ObjectTypes.DocumentBlueprint);
         var isMedia = objectTypes.Any(objectType => objectType == Constants.ObjectTypes.Media);
         var isMember = objectTypes.Any(objectType => objectType == Constants.ObjectTypes.Member);
 
-        Sql<ISqlContext> sql = GetBaseWhere(isContent, isMedia, isMember, false, s =>
+        Sql<ISqlContext> sql = GetBaseWhere(isContent, isMedia, isMember, false, culture, s =>
         {
             sqlCustomization?.Invoke(s);
 
@@ -227,7 +228,7 @@ internal class EntityRepository : RepositoryBase, IEntityRepositoryExtended
         var isMedia = objectType == Constants.ObjectTypes.Media;
         var isMember = objectType == Constants.ObjectTypes.Member;
 
-        Sql<ISqlContext> sql = GetBaseWhere(isContent, isMedia, isMember, false, null, new[] {objectType});
+        Sql<ISqlContext> sql = GetBaseWhere(isContent, isMedia, isMember, false, null, null, new[] {objectType});
 
         var translator = new SqlTranslator<IUmbracoEntity>(sql, query);
         sql = translator.Translate();
@@ -387,14 +388,14 @@ internal class EntityRepository : RepositoryBase, IEntityRepositoryExtended
     protected Sql<ISqlContext> GetFullSqlForEntityType(bool isContent, bool isMedia, bool isMember, Guid objectType,
         Action<Sql<ISqlContext>>? filter)
     {
-        Sql<ISqlContext> sql = GetBaseWhere(isContent, isMedia, isMember, false, filter, new[] {objectType});
+        Sql<ISqlContext> sql = GetBaseWhere(isContent, isMedia, isMember, false, null, filter, new[] {objectType});
         return AddGroupBy(isContent, isMedia, isMember, sql, true);
     }
 
     // gets the base SELECT + FROM [+ filter] sql
     // always from the 'current' content version
     protected Sql<ISqlContext> GetBase(bool isContent, bool isMedia, bool isMember, Action<Sql<ISqlContext>>? filter,
-        bool isCount = false)
+        bool isCount = false, string? culture = null)
     {
         Sql<ISqlContext> sql = Sql();
 
@@ -449,6 +450,13 @@ internal class EntityRepository : RepositoryBase, IEntityRepositoryExtended
         {
             sql
                 .LeftJoin<DocumentDto>().On<NodeDto, DocumentDto>((left, right) => left.NodeId == right.NodeId);
+
+            if (culture.HasValue())
+            {
+                sql
+                    .LeftJoin<DocumentCultureVariationDto>()
+                    .On<DocumentDto, DocumentCultureVariationDto>((left, right) => left.NodeId == right.NodeId);
+            }
         }
 
         if (isMedia)
@@ -474,10 +482,10 @@ internal class EntityRepository : RepositoryBase, IEntityRepositoryExtended
 
     // gets the base SELECT + FROM [+ filter] + WHERE sql
     // for a given object type, with a given filter
-    protected Sql<ISqlContext> GetBaseWhere(bool isContent, bool isMedia, bool isMember, bool isCount,
+    protected Sql<ISqlContext> GetBaseWhere(bool isContent, bool isMedia, bool isMember, bool isCount, string? culture,
         Action<Sql<ISqlContext>>? filter, Guid[] objectTypes)
     {
-        Sql<ISqlContext> sql = GetBase(isContent, isMedia, isMember, filter, isCount);
+        Sql<ISqlContext> sql = GetBase(isContent, isMedia, isMember, filter, isCount, culture);
         if (objectTypes.Length > 0)
         {
             sql.WhereIn<NodeDto>(x => x.NodeObjectType, objectTypes);
@@ -488,9 +496,9 @@ internal class EntityRepository : RepositoryBase, IEntityRepositoryExtended
 
     // gets the base SELECT + FROM + WHERE sql
     // for a given node id
-    protected Sql<ISqlContext> GetBaseWhere(bool isContent, bool isMedia, bool isMember, bool isCount, int id)
+    protected Sql<ISqlContext> GetBaseWhere(bool isContent, bool isMedia, bool isMember, bool isCount, int id, string? culture = null)
     {
-        Sql<ISqlContext> sql = GetBase(isContent, isMedia, isMember, null, isCount)
+        Sql<ISqlContext> sql = GetBase(isContent, isMedia, isMember, null, isCount, culture)
             .Where<NodeDto>(x => x.NodeId == id);
         return AddGroupBy(isContent, isMedia, isMember, sql, true);
     }

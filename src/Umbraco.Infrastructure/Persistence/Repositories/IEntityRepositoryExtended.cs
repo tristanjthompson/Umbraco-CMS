@@ -18,6 +18,7 @@ public interface IEntityRepositoryExtended : IEntityRepository
     /// <param name="totalRecords"></param>
     /// <param name="filter"></param>
     /// <param name="ordering"></param>
+    /// <param name="culture"></param>
     /// <param name="sqlCustomization">
     ///     A callback providing the ability to customize the generated SQL used to retrieve entities
     /// </param>
@@ -27,5 +28,5 @@ public interface IEntityRepositoryExtended : IEntityRepository
     ///     <see cref="IMemberEntitySlim" />
     /// </returns>
     IEnumerable<IEntitySlim> GetPagedResultsByQuery(
-        IQuery<IUmbracoEntity> query, Guid[] objectTypes, long pageIndex, int pageSize, out long totalRecords, IQuery<IUmbracoEntity>? filter, Ordering? ordering, Action<Sql<ISqlContext>>? sqlCustomization = null);
+        IQuery<IUmbracoEntity> query, Guid[] objectTypes, long pageIndex, int pageSize, out long totalRecords, IQuery<IUmbracoEntity>? filter, Ordering? ordering, string? culture = null, Action<Sql<ISqlContext>>? sqlCustomization = null);
 }

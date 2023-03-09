@@ -315,8 +315,9 @@ public class EntityService : RepositoryService, IEntityService
         int pageSize,
         out long totalRecords,
         IQuery<IUmbracoEntity>? filter = null,
-        Ordering? ordering = null)
-        => GetPagedChildren(id, objectType, pageIndex, pageSize, false, filter, ordering, out totalRecords);
+        Ordering? ordering = null,
+        string? culture = null)
+        => GetPagedChildren(id, objectType, pageIndex, pageSize, false, filter, ordering, culture, out totalRecords);
 
     /// <inheritdoc />
     public IEnumerable<IEntitySlim> GetPagedTrashedChildren(
@@ -327,7 +328,7 @@ public class EntityService : RepositoryService, IEntityService
         out long totalRecords,
         IQuery<IUmbracoEntity>? filter = null,
         Ordering? ordering = null)
-        => GetPagedChildren(id, objectType, pageIndex, pageSize, true, filter, ordering, out totalRecords);
+        => GetPagedChildren(id, objectType, pageIndex, pageSize, true, filter, ordering, null, out totalRecords);
 
     /// <inheritdoc />
     public IEnumerable<IEntitySlim> GetPagedDescendants(
@@ -538,13 +539,14 @@ public class EntityService : RepositoryService, IEntityService
         bool trashed,
         IQuery<IUmbracoEntity>? filter,
         Ordering? ordering,
+        string? culture,
         out long totalRecords)
     {
         using (ScopeProvider.CreateCoreScope(autoComplete: true))
         {
             IQuery<IUmbracoEntity> query = Query<IUmbracoEntity>().Where(x => x.ParentId == id && x.Trashed == trashed);
 
-            return _entityRepository.GetPagedResultsByQuery(query, objectType.GetGuid(), pageIndex, pageSize, out totalRecords, filter, ordering);
+            return _entityRepository.GetPagedResultsByQuery(query, objectType.GetGuid(), pageIndex, pageSize, out totalRecords, filter, ordering, culture);
         }
     }
 }

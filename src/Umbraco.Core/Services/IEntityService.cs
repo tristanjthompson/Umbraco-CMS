@@ -184,7 +184,8 @@ public interface IEntityService
         int pageSize,
         out long totalRecords,
         IQuery<IUmbracoEntity>? filter = null,
-        Ordering? ordering = null);
+        Ordering? ordering = null,
+        string? culture = null);
 
     /// <summary>
     ///     Gets children of an entity.

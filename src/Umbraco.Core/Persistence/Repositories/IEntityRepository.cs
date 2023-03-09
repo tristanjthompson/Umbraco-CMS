@@ -58,6 +58,7 @@ public interface IEntityRepository : IRepository
     /// <param name="totalRecords"></param>
     /// <param name="filter"></param>
     /// <param name="ordering"></param>
+    /// <param name="culture"></param>
     /// <returns></returns>
     IEnumerable<IEntitySlim> GetPagedResultsByQuery(
         IQuery<IUmbracoEntity> query,
@@ -66,5 +67,6 @@ public interface IEntityRepository : IRepository
         int pageSize,
         out long totalRecords,
         IQuery<IUmbracoEntity>? filter,
-        Ordering? ordering);
+        Ordering? ordering,
+        string? culture = null);
 }

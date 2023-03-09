@@ -739,6 +739,8 @@ public class EntityController : UmbracoAuthorizedJsonController
         {
             IEnumerable<IEntitySlim> entities;
 
+            var culture = ClientCulture();
+
             var startNodes = GetStartNodes(type);
 
             var ignoreUserStartNodes = IsDataTypeIgnoringUserStartNodes(dataTypeKey);
@@ -766,7 +768,8 @@ public class EntityController : UmbracoAuthorizedJsonController
                     : _sqlContext.Query<IUmbracoEntity>().Where(x => x.Name!.Contains(filter)
                       || x.Id == filterAsIntId
                       || x.Key == filterAsGuid),
-                Ordering.By(orderBy, orderDirection));
+                Ordering.By(orderBy, orderDirection),
+                culture);
 
 
             if (totalRecords == 0)
@@ -774,7 +777,6 @@ public class EntityController : UmbracoAuthorizedJsonController
                 return new PagedResult<EntityBasic>(0, 0, 0);
             }
 
-            var culture = ClientCulture();
             var pagedResult = new PagedResult<EntityBasic>(totalRecords, pageNumber, pageSize)
             {
                 Items = entities.Select(source =>

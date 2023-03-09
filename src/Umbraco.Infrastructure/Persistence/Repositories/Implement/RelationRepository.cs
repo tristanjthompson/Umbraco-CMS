@@ -222,7 +222,7 @@ internal class RelationRepository : EntityRepositoryBase<int, IRelation>, IRelat
         // required to populate content, media or members, else we get the bare minimum data needed to populate an entity. BUT if we do this it
         // means that the SQL is less efficient and returns data that is probably not needed for what we need this lookup for. For the time being we
         // will just return the bare minimum entity data.
-        _entityRepository.GetPagedResultsByQuery(Query<IUmbracoEntity>(), entityTypes, pageIndex, pageSize, out totalRecords, null, null, sql =>
+        _entityRepository.GetPagedResultsByQuery(Query<IUmbracoEntity>(), entityTypes, pageIndex, pageSize, out totalRecords, null, null, null, sql =>
             {
                 SqlJoinRelations(sql);
 
@@ -242,7 +242,7 @@ internal class RelationRepository : EntityRepositoryBase<int, IRelation>, IRelat
         // required to populate content, media or members, else we get the bare minimum data needed to populate an entity. BUT if we do this it
         // means that the SQL is less efficient and returns data that is probably not needed for what we need this lookup for. For the time being we
         // will just return the bare minimum entity data.
-        _entityRepository.GetPagedResultsByQuery(Query<IUmbracoEntity>(), entityTypes, pageIndex, pageSize, out totalRecords, null, null, sql =>
+        _entityRepository.GetPagedResultsByQuery(Query<IUmbracoEntity>(), entityTypes, pageIndex, pageSize, out totalRecords, null, null, null, sql =>
             {
                 SqlJoinRelations(sql);
 
