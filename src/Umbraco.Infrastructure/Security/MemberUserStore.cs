@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Umbraco.Cms.Core.DependencyInjection;
 using Umbraco.Cms.Core.Mapping;
 using Umbraco.Cms.Core.Models;
+using Umbraco.Cms.Core.Models.Entities;
 using Umbraco.Cms.Core.Models.PublishedContent;
 using Umbraco.Cms.Core.PublishedCache;
 using Umbraco.Cms.Core.Scoping;
@@ -119,7 +120,16 @@ public class MemberUserStore : UmbracoUserStore<MemberIdentityUser, UmbracoIdent
 
             if (!memberEntity.HasIdentity)
             {
-                throw new DataException("Could not create the member, check logs for details");
+                bool hasBeenCancelled = (memberEntity as ICanBeDirty)?.IsPropertyDirty(nameof(memberEntity.CreateDate)) != true;
+                if (hasBeenCancelled)
+                {
+                    scope.Complete();
+                    return Task.FromResult(IdentityResult.Success);
+                }
+                else
+                {
+                    throw new DataException("Could not create the member, check logs for details");
+                }
             }
 
             // re-assign id

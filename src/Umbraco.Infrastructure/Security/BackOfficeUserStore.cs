@@ -8,6 +8,7 @@ using Umbraco.Cms.Core.Configuration.Models;
 using Umbraco.Cms.Core.DependencyInjection;
 using Umbraco.Cms.Core.Mapping;
 using Umbraco.Cms.Core.Models;
+using Umbraco.Cms.Core.Models.Entities;
 using Umbraco.Cms.Core.Models.Membership;
 using Umbraco.Cms.Core.Scoping;
 using Umbraco.Cms.Core.Services;
@@ -118,17 +119,17 @@ public class BackOfficeUserStore : UmbracoUserStore<BackOfficeIdentityUser, Iden
         }
 
         if (user.Email is null || user.UserName is null)
-            {
-                throw new InvalidOperationException("Email and UserName is required.");
-            }
+        {
+            throw new InvalidOperationException("Email and UserName is required.");
+        }
 
-            // the password must be 'something' it could be empty if authenticating
-            // with an external provider so we'll just generate one and prefix it, the
-            // prefix will help us determine if the password hasn't actually been specified yet.
-            // this will hash the guid with a salt so should be nicely random
-            var aspHasher = new PasswordHasher<BackOfficeIdentityUser>();
-            var emptyPasswordValue = Constants.Security.EmptyPasswordPrefix +
-                                 aspHasher.HashPassword(user, Guid.NewGuid().ToString("N"));
+        // the password must be 'something' it could be empty if authenticating
+        // with an external provider so we'll just generate one and prefix it, the
+        // prefix will help us determine if the password hasn't actually been specified yet.
+        // this will hash the guid with a salt so should be nicely random
+        var aspHasher = new PasswordHasher<BackOfficeIdentityUser>();
+        var emptyPasswordValue = Constants.Security.EmptyPasswordPrefix +
+                             aspHasher.HashPassword(user, Guid.NewGuid().ToString("N"));
 
         var userEntity = new User(_globalSettings, user.Name, user.Email, user.UserName, emptyPasswordValue)
         {
@@ -148,7 +149,15 @@ public class BackOfficeUserStore : UmbracoUserStore<BackOfficeIdentityUser, Iden
 
         if (!userEntity.HasIdentity)
         {
-            throw new DataException("Could not create the user, check logs for details");
+            bool hasBeenCancelled = (userEntity as ICanBeDirty)?.IsPropertyDirty(nameof(userEntity.CreateDate)) != true;
+            if (hasBeenCancelled)
+            {
+                return Task.FromResult(IdentityResult.Success);
+            }
+            else
+            {
+                throw new DataException("Could not create the user, check logs for details");
+            }
         }
 
         // re-assign id
